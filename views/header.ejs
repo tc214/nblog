@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta  charset="utf-8"/>
+        <title>Blog</title>
+        <link rel="stylesheet" href="/stylesheets/style.css">
+    </head>
+
+    
+    <header>
+        <h1><%= title %></h1>
+    </header>
+
+    <nav>
+        <span><a title="HOME" href="/">home</a></span>
+        <% if (user) { %>
+        <sapn><a title="POST" href="/post">post</a></sapn>
+        <span><a title="UPLOAD" href="/upload">upload</a></span>
+        <sapn><a title="LOGOUT" href="/logout">logout</a></sapn>
+        <% } else {%>
+        <span><a title="LOGIN" href="/log">login</a></span>
+        <span><a title="REGIST" href="/reg">register</a></span>
+        <% } %>
+    </nav>
+
+    <article>
+    <% if (success) { %>
+    <div><%= success %></div>
+    <% } %>
+    <% if (error) { %>
+    <div><%= error %></div>
+    <% } %>
