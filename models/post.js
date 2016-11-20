@@ -1,9 +1,10 @@
 var mongodb = require('./db');
 var markdown = require('markdown').markdown;
 
-function Post(name, title, post) {
+function Post(name, title, tags, post) {
 	this.name = name;
 	this.title = title;
+	this.tags = tags;
 	this.post = post;
 }
 
@@ -27,7 +28,10 @@ Post.prototype.save = function (callback) {
 		name: this.name,
 		time: time,
 		title:this.title,
-		post: this.post
+		tags : this.tags,
+		post: this.post,
+		comments: [],
+		pv: 0
 	};
 	//open DB
 	mongodb.open(function (err, db) {
@@ -111,10 +115,231 @@ Post.getOne = function(name, day, title, callback) {
                 if (err) {
                    	return callback(err);				
 				}
-				//parse markdown to html
-				doc.post = markdown.toHTML(doc.post);
+	            if (doc) {
+		            //pv++
+		            collection.update({
+			            "name": name,
+			            "time.day": day,
+			            "title": title
+		            }, {
+			            $inc: {"pv": 1}
+		            }, function (err) {
+			            mongodb.close();
+			            if (err) {
+				            return callback(err);
+			            }
+		            });
+		            //parse markdown to html
+		            doc.post = markdown.toHTML(doc.post);
+		            doc.comments.forEach(function (comment) {
+			            comment.content = markdown.toHTML(comment.content);
+		            });
+	            }
 				callback(null, doc);//return article found
 			});
 		});
 	});
 };
+
+//return content published (markdown format)
+Post.edit = function(name, day, title, callback) {
+	//open db
+	mongodb.open(function (err, db) {
+		if (err) {
+			return callback(err);
+		}
+		//read posts collection
+		db.collection('posts', function(err, collection) {
+			if (err) {
+				mongodb.close();
+				return callback(err);
+			}
+			//search according to username,date,title
+			collection.findOne({
+				"name": name,
+				"time.day": day,
+				"title": title,
+			}, function (err, doc) {
+				mongodb.close();
+				if (err) {
+					return callback(err);
+				}
+				//return an article found
+				callback(null, doc);
+			});
+		});
+	});
+};
+
+Post.update = function(name, day, title, post, callback) {
+    //open db
+    mongodb.open(function (err, db) {
+	    if (err) {
+		    return callback(err);
+	    }
+	    //read posts collection
+	    db.collection('posts', function(err, collection) {
+		    if (err) {
+			    mongodb.close();
+			    return callback(err);
+		    }
+		    //update content of the article
+		    collection.update({
+			    "name": name,
+			    "time.day": day,
+			    "title": title
+		    }, {
+			    $set: {post: post}
+		    }, function (err) {
+			    mongodb.close();
+			    if (err) {
+				    return callback(err);
+			    }
+			    callback(null);
+		    });
+	    });
+    });
+};
+
+Post.remove = function (name, day, title, callback) {console.log("po-------------");
+    //open db
+	mongodb.open(function (err, db) {
+		if (err) {
+            return callback(err);
+		}
+		//read posts collection
+		db.collection('posts', function(err, collection) {
+			if (err) {
+				mongodb.close();
+				return callback(err);
+			}
+			//search article and remove it according to username,date and title
+			collection.remove({
+				"name": name,
+				"time.day": day,
+				"title": title
+			}, {
+				w: 1
+			}, function(err) {
+				mongodb.close();
+				if (err) {
+					return callback(err);
+				}
+				callback(null);
+			});
+		});
+	});
+};
+
+Post.getArchive = function (callback) {
+    //open db
+	mongodb.open(function (err, db) {
+		if (err) {
+			return callback(err);
+		}
+		//read posts collection
+		db.collection('posts', function (err, collection) {
+			if (err) {
+				mongodb.close();
+				return callback(err);
+			}
+			collection.find({}, {
+				"name": 1,
+				"time": 1,
+				"title": 1
+			}).sort({
+				time: -1
+			}).toArray(function (err, docs) {
+                mongodb.close();
+				if (err) {
+					return callback(err);
+				}
+				callback(null, docs);
+			});
+		});
+	});
+};
+
+//return all tags
+Post.getTags = function (callback) {
+	mongodb.open(function (err, db) {
+		if (err) {
+			return callback(err);
+		}
+		db.collection('posts', function (err, collection) {
+            if (err) {
+	            mongodb.close();
+	            return callback(err);
+            }
+			//find all value of the tag key
+			collection.distinct("tags", function (err, docs) {
+				mongodb.close();
+				if (err) {
+					return callback(err);
+				}
+				callback(null, docs);
+			});
+		});
+	});
+};
+//return all article containing special tag key
+Post.getTag = function (tag ,callback) {
+	mongodb.open(function (err, db) {
+		if (err) {
+			return callback(err);
+		}
+		db.collection('posts', function (err, collection) {
+			if (err) {
+				mongodb.close();
+				return callback(err);
+			}
+			collection.find({
+				"tags": tag
+			}, {
+			    "name": 1,
+				"time": 1,
+				"title": 1
+				}).sort({
+				time: -1
+			}).toArray(function (err, docs) {
+				mongodb.close();
+				if (err) {
+					return callback(err);
+				}
+				callback(null ,docs);
+			});
+		});
+	});
+};
+//return all info of article searched by title keyword
+Post.search =  function (keyword, callback) {
+	mongodb.open(function (err, db) {
+		if (err){
+			return callback(err);
+		}
+		db.collection('post', function (err, collection) {
+			if (err) {
+				mongodb.close();
+				return callback(err);
+			}
+			var pattern = new RegExp(keyword, "i");
+			collection.find({
+				"title": pattern
+			}, {
+				"name": 1,
+				"time": 1,
+				"title": 1
+			}).sort({
+				time: -1
+			}).toArray(function (err, docs) {
+				mongodb.close();
+				if (err) {
+					return callback(err);
+				}
+				callback(null, docs);
+			});
+		});
+	});
+};
+
+

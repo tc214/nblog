@@ -1,12 +1,19 @@
 <%- include header%>
 
 <% posts.forEach(function (post, index) { %>
-<p> <h2><a href="#"><%= post.title %></a></h2></p>
+<p> <h2><a href="/us/<%= post.name %>/<%= post.time.day %>/<%= post.title %>"> <%= post.title %></a></h2></p>
 <p class="info">
    Author: <a href="#"><%= post.name %> </a> |
-   Date:   <%= post.time.minute %>
+   Date:   <%= post.time.minute %> |
+   Label:
+<% post.tags.forEach(function (tag, index) { %>
+<% if (tag) { %>
+<a class="tag" href="/tags/<%= tag %>"><%= tag %></a>
+<% } %>
+<% }) %>
 </p>
 <p><%- post.post %></p>
+<p class="info">read: <%= post.pv %> | comment num:<%= post.comments.length %></p>
 <% }) %>
 
 <%- include footer%>

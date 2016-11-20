@@ -2,13 +2,13 @@
 
 <% posts.forEach(function(post, index) { %>
 <p><h2><a href="/us/<%= post.name %>/<%= post.time.day %>/<%= post.title %>"><%=
-post.title %> </a></h2></p>
+			post.title %> </a></h2></p>
 <p class="info">
-    Author: <a href="/us/<%= post.name %>"><%= post.name %></a> |
+	Author: <a href="/us/<%= post.name %>"><%= post.name %></a> |
 	Date: <%= post.time.minute %>
-	</p>
-	<p><%- post.post %></p>
-	<% }) %>
-	
+</p>
+<p><%- post.post %></p>
+<p class="info">read: <%= post.pv %> | comment num:<%= post.comments.length %></p>
+<% }) %>
+
 <%- include footer %>
-	
