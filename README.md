@@ -1,2 +1,2 @@
 # blog
-blog using node js
+a blog wrote by node js
