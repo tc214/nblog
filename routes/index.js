@@ -134,8 +134,8 @@ console.log(password);
     app.post('/post', checkLogin);
     app.post('/post', function(req, res){
         var currentUser = req.session.user,
-            tags = [req.body.tag1, req.body.tag2, req.body.tag3],
-            post = new Post(currentUser.name, req.body.title, req.body.post);
+            tags = [req.body.tag1, req.body.tag2, req.body.tag3], 
+            post = new Post(currentUser.name, req.body.title, tags, req.body.post);console.log(tags);
         post.save(function (err) {
             if (err) {
                 req.flash('error', err);
@@ -184,7 +184,7 @@ console.log(password);
         });
     });
     
-    app.get('/tags', function (req, res) {
+    app.get('/tags', function (req, res) {console.log("tag----index-----");
         Post.getTags(function (err, posts) {
             if (err) {
                 req.flash('error', err);
@@ -200,19 +200,19 @@ console.log(password);
         });
     });
     
-    app.get('/tags/:tag', function (req, res) {
-        Post.getTag(req.params.tag, function (err, posts) {
-            if (err) {
+    app.get('/tags/:tag', function (req, res) {console.log("tags----index-----");
+        Post.getTag(req.params.tag, function (err, posts) {console.log("tags---back----");
+            if (err) {    console.log("tags----ierr----");
                 req.flash('error', err);
                 return res.redirect('/');
-            }
+            } console.log(req.params.tag);
             res.render('tag', {
                 title: 'TAG:' + req.params.tag,
                 posts: posts,
                 user: req.session.user,
                 success: req.flash('success').toString(),
                 error: req.flash('error').toString()
-            });
+            });console.log("tags---sssss----");
         });
     });
 
@@ -225,12 +225,12 @@ console.log(password);
         });    
     });
     
-    app.get('/search', function (req, res) {
-        Post.search(req.query.keyword, function (err, posts) {
+    app.get('/search', function (req, res) {  console.log("index--------get");
+        Post.search(req.query.keyword, function (err, posts) {console.log("index--------getback");
             if (err) {
                 req.flash('error', err);
                 return res.redirect('/');
-            }
+            }console.log("index--------gesssssssssst");console.log(req.query.keyword);console.log(posts);
             res.render('search', {
                 title: "SEARCH:" + req.query.keyword,
                 posts: posts,
@@ -266,8 +266,7 @@ console.log(password);
 	});
 	
 	app.get('/us/:name/:day/:title', function(req, res) {
-		Post.getOne(req.params.name, req.params.day, req.params.title, function(err,
-	post) {
+		Post.getOne(req.params.name, req.params.day, req.params.title, function(err, post) {
 			if (err) {
 				req.flash('error', err);
 				return res.redirect('/');
@@ -281,9 +280,9 @@ console.log(password);
 			});
 		});
 	});
-    app.post('us/:name/:day/:title', function (req, res) {
+    app.post('/us/:name/:day/:title', function (req, res) { 
         var date = new Date(),
-            time = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + ""+
+            time = date.getFullYear() + "-" + (date.getMonth() + 1) + "-" + date.getDate() + " "+
                     date.getHours() + ":" + (date.getMinutes() < 10 ? '0' + date.getMinutes() : date.getMinutes());
         var comment = {
             name: req.body.name,
@@ -291,13 +290,13 @@ console.log(password);
             website: req.body.website,
             time: time,
             content: req.body.content
-        };
+        };                             
         var newComment = new Comment(req.params.name, req.params.day, req.params.title, comment);
-        newComment.save(function (err) {
-           if (err) {
+        newComment.save(function (err) {  
+           if (err) {  
                req.flash('error', err);
                return res.redirect('back');
-           }
+           }  
             req.flash('success', 'comment success!');
             res.redirect('back');
         });
@@ -348,7 +347,7 @@ console.log(password);
         });
     });
 
-    app.use(function (req, res) {
+    app.use(function (req, res) {console.log("--------404---------");
         res.render("404");
     });
     

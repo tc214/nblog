@@ -85,7 +85,11 @@ Post.getAll = function (name, callback) {
 				}
 				//parse markdown to html
 				docs.forEach(function (doc) {
-					doc.post = markdown.toHTML(doc.post);
+					if (doc.post) {
+						console.log(docs);
+						doc.post = markdown.toHTML(doc.post);
+					}
+					
 				});
 				callback(null, docs);
 			});
@@ -111,8 +115,8 @@ Post.getOne = function(name, day, title, callback) {
                 "time.day": day,
                 "title": title
             }, function(err, doc) {
-                mongodb.close();
                 if (err) {
+					mongodb.close();
                    	return callback(err);				
 				}
 	            if (doc) {
@@ -130,12 +134,17 @@ Post.getOne = function(name, day, title, callback) {
 			            }
 		            });
 		            //parse markdown to html
-		            doc.post = markdown.toHTML(doc.post);
-		            doc.comments.forEach(function (comment) {
-			            comment.content = markdown.toHTML(comment.content);
-		            });
+					if (doc) {
+						doc.post = markdown.toHTML(doc.post);
+						doc.comments.forEach(function (comment) {
+							comment.content = markdown.toHTML(comment.content);
+						});
+						callback(null, doc);//return article found
+					}
+					
 	            }
-				callback(null, doc);//return article found
+				
+				
 			});
 		});
 	});
@@ -261,7 +270,7 @@ Post.getArchive = function (callback) {
 };
 
 //return all tags
-Post.getTags = function (callback) {
+Post.getTags = function (callback) {console.log("tags---------");
 	mongodb.open(function (err, db) {
 		if (err) {
 			return callback(err);
@@ -283,13 +292,13 @@ Post.getTags = function (callback) {
 	});
 };
 //return all article containing special tag key
-Post.getTag = function (tag ,callback) {
+Post.getTag = function (tag ,callback) {   console.log("tag---------");
 	mongodb.open(function (err, db) {
-		if (err) {
+		if (err) {console.log("tag------err---");
 			return callback(err);
 		}
 		db.collection('posts', function (err, collection) {
-			if (err) {
+			if (err) {console.log("tag----0000000-");
 				mongodb.close();
 				return callback(err);
 			}
@@ -301,23 +310,23 @@ Post.getTag = function (tag ,callback) {
 				"title": 1
 				}).sort({
 				time: -1
-			}).toArray(function (err, docs) {
+			}).toArray(function (err, docs) {console.log("tag--------111111111-");
 				mongodb.close();
-				if (err) {
+				if (err) {console.log("tag----6666666cess-");
 					return callback(err);
-				}
+				}console.log("tag--------success-");
 				callback(null ,docs);
 			});
 		});
 	});
 };
 //return all info of article searched by title keyword
-Post.search =  function (keyword, callback) {
+Post.search =  function (keyword, callback) {console.log("index---post--get");
 	mongodb.open(function (err, db) {
 		if (err){
 			return callback(err);
 		}
-		db.collection('post', function (err, collection) {
+		db.collection('posts', function (err, collection) {
 			if (err) {
 				mongodb.close();
 				return callback(err);
@@ -335,7 +344,7 @@ Post.search =  function (keyword, callback) {
 				mongodb.close();
 				if (err) {
 					return callback(err);
-				}
+				}console.log("index---post--get------------999999999999");
 				callback(null, docs);
 			});
 		});
